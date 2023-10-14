@@ -1,0 +1,5 @@
+#ifndef PROFLOG_CONFIG_H
+#define PROFLOG_CONFIG_H
+
+
+#endif //PROFLOG_CONFIG_H
