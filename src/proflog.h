@@ -11,8 +11,11 @@ extern "C" {
 #endif
 
 void l_init();
+void l_initStats(enum RecID id);
+void l_timeSinceLast(enum RecID id, enum RecID refTo);
 void l(enum RecID id);
-void l_timeSinceLast(unsigned int id, unsigned int refTo);
+char *itoa_vitaut1(char *buf, unsigned int val);
+char *itoa_vitaut1_pl(char *buf, unsigned int val);
 
 #ifdef __cplusplus
 }

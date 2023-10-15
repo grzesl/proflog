@@ -11,6 +11,7 @@
         _(L_SYSTEM_STOP)   \
         _(L_MAIN_LOOP_BEGIN) \
         _(L_LONG_OPERATION) \
+        _(L_CONVERSION) \
 
 enum RecID {
     EACH_LOG_RECORD_ID(GENERATE_ENUM)
@@ -28,7 +29,8 @@ LogDef logDef = {
         {L_SYSTEM_START, LOG_ITEM_DEF, {.logItemDef = {MUSTBE, "System starting..."}}},
         {L_SYSTEM_STOP, LOG_ITEM_DEF, {.logItemDef = {MUSTBE, "System stopping...", .options.bit.printTotalTime = 1}}},
         {L_MAIN_LOOP_BEGIN, LOG_ITEM_DEF, {.logItemDef = {INFO, "Main loop", .options.bit.printTimeSinceLast = 1, .options.bit.printSeqNumber = 1, .options.bit.printCounter = 1}}},
-         {L_MAIN_LOOP_BEGIN, LOG_ITEM_DEF, {.logItemDef = {WARNING, "Long operation!", .options.bit.printCounter = 1}}},
+        {L_LONG_OPERATION, LOG_ITEM_DEF, {.logItemDef = {WARNING, "Long operation!", .options.bit.printCounter = 1}}},
+        {L_CONVERSION, LOG_ITEM_DEF, {.logItemDef = {INFO, "Conversion", .options.bit.printCounter = 1, .options.bit.printTimeSinceLast = 1}}},
     }};
 
 #endif //PREFLOG_DEFINITION

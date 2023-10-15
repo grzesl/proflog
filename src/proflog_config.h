@@ -1,5 +1,6 @@
 #ifndef PROFLOG_CONFIG_H
 #define PROFLOG_CONFIG_H
 
+#define MAX_LOG_LINE_LEN 128
 
 #endif //PROFLOG_CONFIG_H

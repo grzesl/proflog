@@ -1,6 +1,8 @@
 #ifndef PROFLOG_TYPES_H
 #define PROFLOG_TYPES_H
 
+#include "proflog_fmt.h"
+
 #define EACH_LOG_LEVEL(_) \
         _(INFO)   \
         _(WARNING)  \
@@ -101,7 +103,7 @@ typedef struct _LogDef {
     int recCount;
     LogCfg configInfo;
     LogRecordDef records[10];
-
+    FmtLine line;
     //statistics should be at end
     unsigned long count;
 }LogDef;
