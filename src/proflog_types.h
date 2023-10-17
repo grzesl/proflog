@@ -16,6 +16,12 @@
         _(PROF_LOG_CFG)   \
         _(LOG_ITEM_DEF)   \
 
+#define EACH_PARAM_TYPE(_) \
+        _(PARAM_NONE)   \
+        _(PARAM_INT)   \
+        _(PARAM_UINT)  \
+        _(PARAM_STRING)   \
+
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
 
@@ -35,6 +41,10 @@ static const char *LogTypeString[] = {
     EACH_LOG_TYPE(GENERATE_STRING)
 };
 
+enum ParamType  {  
+    EACH_PARAM_TYPE(GENERATE_ENUM)
+};
+
 typedef struct _LogHdr {
     int  id;
     enum  LogType header;
@@ -45,9 +55,18 @@ typedef struct _ProfLogInfo {
     char version [10];
 }ProfLogInfo;
 
+typedef struct _ParamLogDef {
+    char name[MAX_LOG_PARAM_NAME_LEN + 1];
+    enum ParamType type;
+    int value_int;
+    unsigned int value_uint;
+    char value_str[MAX_LOG_PARAM_STRING_LEN + 1];
+} ParamLogDef;
+
 typedef struct _LogItemDef {
     enum LogLevel level;
     char name [64];
+    ParamLogDef params[MAX_LOG_PARAM_COUNT];
     union
     {
         struct
@@ -102,7 +121,7 @@ typedef struct _LogRecordDef {
 typedef struct _LogDef {
     int recCount;
     LogCfg configInfo;
-    LogRecordDef records[10];
+    LogRecordDef records[MAX_LOG_DEFINITIONS_COUNT];
     FmtLine line;
     //statistics should be at end
     unsigned long count;

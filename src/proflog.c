@@ -1,7 +1,8 @@
 
 #define PREFLOG_DEFINITION
-#include "stdio.h"
-#include "time.h"
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
 #include "proflog_definition.h"
 #include "proflog_fmt.h"
 
@@ -66,6 +67,33 @@ void l_initStats(enum RecID id) {
     item->lastPrintTime = currentTick;
 }
 
+
+void l_print_param(FmtLine *line, ParamLogDef *def) {
+
+
+        fmt_append_str(line, def->name);
+        switch(def->type)
+        {
+            case PARAM_INT:
+            {
+                fmt_append_int(line, def->value_int, 0,0);
+                break;
+            }
+            case PARAM_UINT:
+            {
+                fmt_append_int(line, def->value_uint,0,0);
+                break;
+            }            
+            case PARAM_STRING:
+            {
+                fmt_append_str(line, def->value_str);
+            }
+            break;
+        }
+        fmt_append_char(&logDef.line, ' ');
+
+}
+
 void l(enum RecID id) {
     fmt_init(&logDef.line);
     logDef.count++;
@@ -82,6 +110,13 @@ void l(enum RecID id) {
         fmt_append_str(&logDef.line, item->name);
         fmt_append_char(&logDef.line, ' ');
 
+        for(int i=0;i<MAX_LOG_PARAM_COUNT;i++)
+        {
+            if(item->params[i].type == PARAM_NONE)
+                break;
+            l_print_param(&logDef.line, &item->params[i]);
+        }
+
         if (item->options.bit.printCounter)
         {
             fmt_append_char(&logDef.line, '[');
@@ -91,20 +126,20 @@ void l(enum RecID id) {
         
         if(item->timeSinceLastRefTo){
             fmt_append_uint(&logDef.line, currentTick - item->timeSinceLastRefTo, 8, '_');
-            fmt_append_str(&logDef.line, " {<->} [ms] ");
+            fmt_append_str(&logDef.line, "[ms] ");
         }
 
         if(item->options.bit.printTotalTime){
             fmt_append_uint(&logDef.line, currentTick - item->firstPrintTime, 8, '_');
-            fmt_append_str(&logDef.line, " (<->) [ms] ");
+            fmt_append_str(&logDef.line, "[ms] ");
         }
         if(item->options.bit.printTimeSinceLast){
             fmt_append_uint(&logDef.line, currentTick - item->lastPrintTime, 8, '_');
-            fmt_append_str(&logDef.line, " |<->| [ms] ");
+            fmt_append_str(&logDef.line, "[ms] ");
         }
         fmt_append_char(&logDef.line, '\0');
         if (item->options.bit.noAppendCR == 0)
-            puts(&logDef.line.data);
+            puts(logDef.line.data);
         else printf("%s", logDef.line.data);
     }
 
@@ -113,6 +148,27 @@ void l(enum RecID id) {
     if(item->firstPrintTime == 0)
         item->firstPrintTime = currentTick;
     item->counter ++;
+}
+
+void l_param_str(enum RecID id, int param, char *str) {
+
+    LogItemDef *item = &logDef.records[id].catalog.logItemDef;
+    strncpy(item->params[param].value_str, str, MAX_LOG_PARAM_STRING_LEN);
+    item->params[param].type = PARAM_STRING;
+}
+
+void l_param_uint(enum RecID id,int param, unsigned int value) {
+
+    LogItemDef *item = &logDef.records[id].catalog.logItemDef;
+    item->params[param].value_uint = value;
+    item->params[param].type = PARAM_UINT;
+}
+
+void l_param_int(enum RecID id,int param, int value) {
+
+    LogItemDef *item = &logDef.records[id].catalog.logItemDef;
+    item->params[param].value_int = value;
+    item->params[param].type = PARAM_INT; 
 }
 
 void l_old(enum RecID id) {

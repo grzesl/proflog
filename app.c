@@ -30,17 +30,22 @@ int main ()
 
         char buff[32];
         l_initStats(L_CONVERSION);
-        for (int j = 0; j < 10000; j++)
+        for (int j = 0; j < 100; j++)
         {
             //itoa(j, buff, 10);
             l(L_MAIN_LOOP_BEGIN);
         }
+        l_param_str(L_CONVERSION,0,"logs");
+        l_param_str(L_CONVERSION,1,"amazing");
         l(L_CONVERSION);
-        for (int j = 0; j < 10000; j++)
+     
+        for (int j = 0; j < 100; j++)
         {
             //itoa_vitaut1(buff, j);
             l_old(L_MAIN_LOOP_BEGIN);
         }
+        l_param_str(L_CONVERSION,0,"logs");
+        l_param_str(L_CONVERSION,1,"default");
         l(L_CONVERSION);
 
         /* int msec = rand()%1000;
