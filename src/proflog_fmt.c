@@ -3,9 +3,12 @@
 #include "proflog_config.h"
 #include "proflog_fmt.h"
 
-void fmt_init(FmtLine *line) {
-    line->len = MAX_LOG_LINE_LEN;
+#if LOG_LEVEL != 5
+
+void fmt_init(FmtLine *line, char*buff, int len) {
+    line->len = len;
     line->pos = 0;
+    line->data = buff;
 }
 
 int fmt_append_char(FmtLine *line, int c){
@@ -27,7 +30,7 @@ int fmt_append_mem(FmtLine *line, char* c, int len){
 }
 
 int fmt_append_str(FmtLine *line, const char* c){
-    char* p = c;
+    char* p = (char*)c;
     if(!*p) return 0;
     while(*p){
         if(!fmt_append_char(line, *p++))
@@ -130,3 +133,4 @@ int fmt_append_int(FmtLine *line, int val, int align, int fillchar){
 }
 
 
+#endif //#if LOG_LEVEL != 5

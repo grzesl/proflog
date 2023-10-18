@@ -123,6 +123,7 @@ typedef struct _LogDef {
     LogCfg configInfo;
     LogRecordDef records[MAX_LOG_DEFINITIONS_COUNT];
     FmtLine line;
+    char data [MAX_LOG_LINE_LEN + 1];
     //statistics should be at end
     unsigned long count;
 }LogDef;

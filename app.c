@@ -24,17 +24,18 @@ int main ()
 {
 
     l_init();
-
+    l_initStats(L_SYSTEM_STOP); //time counters init
     for (int i = 0;  i < 1; i ++ ) {
         l(L_MAIN_LOOP_BEGIN);
 
         char buff[32];
-        l_initStats(L_CONVERSION);
+        l_initStats(L_CONVERSION); //time counters init
         for (int j = 0; j < 100; j++)
         {
             //itoa(j, buff, 10);
             l(L_MAIN_LOOP_BEGIN);
         }
+        l_strint("New logs are fast, count: ", 100);
         l_param_str(L_CONVERSION,0,"logs");
         l_param_str(L_CONVERSION,1,"amazing");
         l(L_CONVERSION);
@@ -44,6 +45,8 @@ int main ()
             //itoa_vitaut1(buff, j);
             l_old(L_MAIN_LOOP_BEGIN);
         }
+
+        l_strint("Classics logs are slow,count:", 100);
         l_param_str(L_CONVERSION,0,"logs");
         l_param_str(L_CONVERSION,1,"default");
         l(L_CONVERSION);
@@ -59,6 +62,8 @@ int main ()
 
 
     l(L_SYSTEM_STOP);
+
+    l_finish();
 
     return 0;
 }

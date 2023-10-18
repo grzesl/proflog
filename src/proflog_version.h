@@ -2,7 +2,7 @@
 #define PROFLOG_VERSION_H
 
 #define PROF_LOG_NAME "ProfLog"
-#define PROF_LOG_VERSION "0.90"
-#define PROF_LOG_VERSION_INT 90
+#define PROF_LOG_VERSION "0.91"
+#define PROF_LOG_VERSION_INT 91
 
 #endif //PROFLOG_VERSION_H

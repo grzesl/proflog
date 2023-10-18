@@ -6,6 +6,9 @@ project(${PROJECT_NAME} C CXX)
 
 include_directories(./)
 
+
 add_library(${PROJECT_NAME} 
         proflog.c 
-        proflog_fmt.c)
+        proflog_fmt.c
+        proflog_tofile.c
+        miniz.c)

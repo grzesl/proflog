@@ -5,9 +5,37 @@
 #include <time.h>
 #include "proflog_definition.h"
 #include "proflog_fmt.h"
+#include "proflog_tofile.h"
+
+
+unsigned int l_getTickCount(){
+    return clock();
+}
+
+void l_initStats(enum RecID id) {
+
+    if (LOG_LEVEL == 5)
+        return;
+
+    LogItemDef *item = &logDef.records[id].catalog.logItemDef;
+    unsigned long currentTick = l_getTickCount();
+    item->counter = 0;
+    item->firstPrintTime = currentTick;
+    item->lastPrintTime = currentTick;
+}
 
 void l_init() {
-    fmt_init(&logDef.line);
+    if(LOG_LEVEL == 5)
+        return;
+
+    if(*logDef.configInfo.logFilename){
+        tofile_init(logDef.configInfo.logFilename);
+    }
+
+    fmt_init(&logDef.line, logDef.data, MAX_LOG_LINE_LEN);
+    
+
+
     fmt_append_str(&logDef.line, "--- ");
     fmt_append_str(&logDef.line, logDef.records[L_PROF_LOG_INFO].catalog.profLogInfo.logName);
     fmt_append_char(&logDef.line, ' ');
@@ -34,42 +62,22 @@ void l_init() {
     fmt_append_str(&logDef.line, LogLevelString[logDef.configInfo.logLevel]);
     fmt_append_str(&logDef.line, " Log to stdout: ");
     fmt_append_int(&logDef.line, logDef.configInfo.options.bit.logToStdout, 0, 0);
+
+
+    fmt_append_char(&logDef.line, '\n');
+    tofile_append(logDef.line.data, logDef.line.pos);
+
+    logDef.line.pos -=1;
     fmt_append_char(&logDef.line, '\0');
     puts(logDef.line.data);
+
+    l_initStats(L_FINISH_MSG);
 }
-
-void l_init_old() {
-    printf("--- %s %s -- %s %s --- \n",
-    logDef.records[L_PROF_LOG_INFO].catalog.profLogInfo.logName,
-    logDef.records[L_PROF_LOG_INFO].catalog.profLogInfo.version,
-    logDef.records[L_LOG_APP_INFO].catalog.appLogInfo.appName,
-    logDef.records[L_LOG_APP_INFO].catalog.appLogInfo.version);
-
-    printf("%s", "--- Configuration: ");
-    if(*logDef.configInfo.comMedium)
-        printf("Comm medium: %s " , logDef.configInfo.comMedium);
-    if(*logDef.configInfo.logFilename)
-        printf("Log file name: %s ", logDef.configInfo.logFilename);
-    printf("Log level: %s ", LogLevelString[logDef.configInfo.logLevel]);
-    printf("Log to stdout: %d ", logDef.configInfo.options.bit.logToStdout);
-    printf("\n");
-}
-
-unsigned int l_getTickCount(){
-    return clock();
-}
-
-void l_initStats(enum RecID id) {
-    LogItemDef *item = &logDef.records[id].catalog.logItemDef;
-    unsigned long currentTick = l_getTickCount();
-    item->counter = 0;
-    item->firstPrintTime = currentTick;
-    item->lastPrintTime = currentTick;
-}
-
 
 void l_print_param(FmtLine *line, ParamLogDef *def) {
 
+    if (LOG_LEVEL == 5)
+        return;
 
         fmt_append_str(line, def->name);
         switch(def->type)
@@ -94,10 +102,22 @@ void l_print_param(FmtLine *line, ParamLogDef *def) {
 
 }
 
+
+
 void l(enum RecID id) {
-    fmt_init(&logDef.line);
-    logDef.count++;
+
+    if(LOG_LEVEL == 5)
+        return;
+
     LogItemDef *item = &logDef.records[id].catalog.logItemDef;
+
+    if(item->level < LOG_LEVEL - 1)
+        return;
+
+    fmt_init(&logDef.line, logDef.data, MAX_LOG_LINE_LEN);
+    logDef.count++;
+
+
     unsigned long currentTick = l_getTickCount();
 
     if(logDef.configInfo.options.bit.logToStdout) {
@@ -108,7 +128,8 @@ void l(enum RecID id) {
 
         fmt_append_str(&logDef.line, ") ");
         fmt_append_str(&logDef.line, item->name);
-        fmt_append_char(&logDef.line, ' ');
+        if(*item->name)
+            fmt_append_char(&logDef.line, ' ');
 
         for(int i=0;i<MAX_LOG_PARAM_COUNT;i++)
         {
@@ -137,7 +158,17 @@ void l(enum RecID id) {
             fmt_append_uint(&logDef.line, currentTick - item->lastPrintTime, 8, '_');
             fmt_append_str(&logDef.line, "[ms] ");
         }
+
+        if (item->options.bit.noAppendCR == 0)
+        {
+            fmt_append_char(&logDef.line, '\n');
+            tofile_append(logDef.line.data, logDef.line.pos);
+            logDef.line.pos-=1;
+        }
+
+       
         fmt_append_char(&logDef.line, '\0');
+
         if (item->options.bit.noAppendCR == 0)
             puts(logDef.line.data);
         else printf("%s", logDef.line.data);
@@ -150,7 +181,10 @@ void l(enum RecID id) {
     item->counter ++;
 }
 
+
 void l_param_str(enum RecID id, int param, char *str) {
+    if (LOG_LEVEL == 5)
+        return;
 
     LogItemDef *item = &logDef.records[id].catalog.logItemDef;
     strncpy(item->params[param].value_str, str, MAX_LOG_PARAM_STRING_LEN);
@@ -159,6 +193,9 @@ void l_param_str(enum RecID id, int param, char *str) {
 
 void l_param_uint(enum RecID id,int param, unsigned int value) {
 
+    if (LOG_LEVEL == 5)
+        return;
+
     LogItemDef *item = &logDef.records[id].catalog.logItemDef;
     item->params[param].value_uint = value;
     item->params[param].type = PARAM_UINT;
@@ -166,15 +203,36 @@ void l_param_uint(enum RecID id,int param, unsigned int value) {
 
 void l_param_int(enum RecID id,int param, int value) {
 
+    if (LOG_LEVEL == 5)
+        return;
+
     LogItemDef *item = &logDef.records[id].catalog.logItemDef;
     item->params[param].value_int = value;
     item->params[param].type = PARAM_INT; 
 }
 
+void l_strint(char*str, int val1){
+    if (LOG_LEVEL == 5)
+        return;
+
+    l_param_str(L_DEFAULT, 0, str);
+    l_param_int(L_DEFAULT, 1, val1);
+    l(L_DEFAULT);
+}
+
+
 void l_old(enum RecID id) {
 
-    logDef.count++;
+    if(LOG_LEVEL == 5)
+        return;
+
     LogItemDef *item = &logDef.records[id].catalog.logItemDef;
+        
+    if(item->level < LOG_LEVEL - 1)
+        return;
+
+    logDef.count++;
+
     unsigned long currentTick = l_getTickCount();
 
     if(logDef.configInfo.options.bit.logToStdout) {
@@ -212,10 +270,21 @@ void l_old(enum RecID id) {
     item->counter ++;
 }
 
-void l_timeSinceLast(enum RecID id, enum RecID refTo) {
+unsigned int l_timeSinceLast(enum RecID id, enum RecID refTo) {
+    if (LOG_LEVEL == 5)
+        return 0;
+
     LogItemDef *item = &logDef.records[id].catalog.logItemDef;
     LogItemDef *refitem = &logDef.records[refTo].catalog.logItemDef;
 
     item->timeSinceLastRefTo = refitem->lastPrintTime;
-    l(id);
+    return item->timeSinceLastRefTo;
+}
+
+void l_finish() {
+    if (LOG_LEVEL == 5)
+        return;
+
+    l(L_FINISH_MSG);
+    tofile_close();
 }
