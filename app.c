@@ -17,9 +17,6 @@ void sleep(int milliseconds)
     #endif // _WIN32
 }
 
-char *itoa_vitaut1(char *buf, unsigned int val);
-char *itoa_vitaut1_glpro(char *buf, unsigned int val);
-
 int main ()
 {
 
@@ -32,32 +29,26 @@ int main ()
         l_initStats(L_CONVERSION); //time counters init
         for (int j = 0; j < 100; j++)
         {
-            //itoa(j, buff, 10);
-            l(L_MAIN_LOOP_BEGIN);
+            l(L_TASK);
         }
-        l_strint("New logs are fast, count: ", 100);
+        l_info("New logs are fast, count: ", 100);
         l_param_str(L_CONVERSION,0,"logs");
         l_param_str(L_CONVERSION,1,"amazing");
         l(L_CONVERSION);
      
         for (int j = 0; j < 100; j++)
         {
-            //itoa_vitaut1(buff, j);
-            l_old(L_MAIN_LOOP_BEGIN);
+            l_old(L_TASK);
         }
 
-        l_strint("Classics logs are slow,count:", 100);
+        l_info("Slow logs, loop count:", 100);
         l_param_str(L_CONVERSION,0,"logs");
         l_param_str(L_CONVERSION,1,"default");
         l(L_CONVERSION);
 
-        /* int msec = rand()%1000;
-         sleep(msec);
-
-         if(msec > 500)
-         {
-             l_timeSinceLast(L_LONG_OPERATION, L_MAIN_LOOP_BEGIN);
-         }*/
+        unsigned int timeSince = l_timeSinceLast(L_CONVERSION, L_MAIN_LOOP_BEGIN);
+        if(timeSince > 400)
+            l_error("Too slow code, about:",timeSince);
     }
 
 

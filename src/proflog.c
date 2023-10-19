@@ -111,64 +111,71 @@ void l(enum RecID id) {
 
     LogItemDef *item = &logDef.records[id].catalog.logItemDef;
 
-    if(item->level < LOG_LEVEL - 1)
+    if (item->level < LOG_LEVEL - 1)
         return;
+
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    unsigned long currentTick = l_getTickCount();
+    struct timeval  start;
+    mingw_gettimeofday(&start, NULL);
 
     fmt_init(&logDef.line, logDef.data, MAX_LOG_LINE_LEN);
     logDef.count++;
 
+    fmt_append_datetime(&logDef.line, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
+        tm.tm_hour, tm.tm_min, tm.tm_sec, (start.tv_usec/1000) % 1000 );
+    fmt_append_char(&logDef.line, ' ');
+    fmt_append_str(&logDef.line, LogLevelString[item->level]);
+    fmt_append_str(&logDef.line, " (");
+    fmt_append_uint(&logDef.line, logDef.count, 6, '_');
 
-    unsigned long currentTick = l_getTickCount();
+    fmt_append_str(&logDef.line, ") ");
+    fmt_append_str(&logDef.line, item->name);
+    if (*item->name)
+        fmt_append_char(&logDef.line, ' ');
+
+    for (int i = 0; i < MAX_LOG_PARAM_COUNT; i++)
+    {
+        if (item->params[i].type == PARAM_NONE)
+            break;
+        l_print_param(&logDef.line, &item->params[i]);
+    }
+
+    if (item->options.bit.printCounter)
+    {
+        fmt_append_char(&logDef.line, '[');
+        fmt_append_uint(&logDef.line, item->counter, 6, '_');
+        fmt_append_str(&logDef.line, "] ");
+    }
+
+    if (item->timeSinceLastRefTo)
+    {
+        fmt_append_uint(&logDef.line, currentTick - item->timeSinceLastRefTo, 8, '_');
+        fmt_append_str(&logDef.line, "[ms] ");
+    }
+
+    if (item->options.bit.printTotalTime)
+    {
+        fmt_append_uint(&logDef.line, currentTick - item->firstPrintTime, 8, '_');
+        fmt_append_str(&logDef.line, "[ms] ");
+    }
+    if (item->options.bit.printTimeSinceLast)
+    {
+        fmt_append_uint(&logDef.line, currentTick - item->lastPrintTime, 8, '_');
+        fmt_append_str(&logDef.line, "[ms] ");
+    }
+
+    if (item->options.bit.noAppendCR == 0)
+    {
+        fmt_append_char(&logDef.line, '\n');
+        tofile_append(logDef.line.data, logDef.line.pos);
+        logDef.line.pos -= 1;
+    }
+
+    fmt_append_char(&logDef.line, '\0');
 
     if(logDef.configInfo.options.bit.logToStdout) {
-
-        fmt_append_str(&logDef.line,LogLevelString[item->level]);
-        fmt_append_str(&logDef.line, " (");
-        fmt_append_uint(&logDef.line, logDef.count, 6, '_');
-
-        fmt_append_str(&logDef.line, ") ");
-        fmt_append_str(&logDef.line, item->name);
-        if(*item->name)
-            fmt_append_char(&logDef.line, ' ');
-
-        for(int i=0;i<MAX_LOG_PARAM_COUNT;i++)
-        {
-            if(item->params[i].type == PARAM_NONE)
-                break;
-            l_print_param(&logDef.line, &item->params[i]);
-        }
-
-        if (item->options.bit.printCounter)
-        {
-            fmt_append_char(&logDef.line, '[');
-            fmt_append_uint(&logDef.line, item->counter, 6, '_');
-            fmt_append_str(&logDef.line, "] ");
-        }
-        
-        if(item->timeSinceLastRefTo){
-            fmt_append_uint(&logDef.line, currentTick - item->timeSinceLastRefTo, 8, '_');
-            fmt_append_str(&logDef.line, "[ms] ");
-        }
-
-        if(item->options.bit.printTotalTime){
-            fmt_append_uint(&logDef.line, currentTick - item->firstPrintTime, 8, '_');
-            fmt_append_str(&logDef.line, "[ms] ");
-        }
-        if(item->options.bit.printTimeSinceLast){
-            fmt_append_uint(&logDef.line, currentTick - item->lastPrintTime, 8, '_');
-            fmt_append_str(&logDef.line, "[ms] ");
-        }
-
-        if (item->options.bit.noAppendCR == 0)
-        {
-            fmt_append_char(&logDef.line, '\n');
-            tofile_append(logDef.line.data, logDef.line.pos);
-            logDef.line.pos-=1;
-        }
-
-       
-        fmt_append_char(&logDef.line, '\0');
-
         if (item->options.bit.noAppendCR == 0)
             puts(logDef.line.data);
         else printf("%s", logDef.line.data);
@@ -211,15 +218,49 @@ void l_param_int(enum RecID id,int param, int value) {
     item->params[param].type = PARAM_INT; 
 }
 
-void l_strint(char*str, int val1){
+void l_strint(enum RecID id, char*str, int val1){
     if (LOG_LEVEL == 5)
         return;
 
-    l_param_str(L_DEFAULT, 0, str);
-    l_param_int(L_DEFAULT, 1, val1);
-    l(L_DEFAULT);
+    l_param_str(id, 0, str);
+    l_param_int(id, 1, val1);
+    l(id);
 }
 
+void l_error(char*str, int val1){
+    if (LOG_LEVEL == 5)
+        return;
+
+    l_strint(L_ERROR, str,val1);
+}
+
+void l_info(char*str, int val1){
+    if (LOG_LEVEL == 5)
+        return;
+
+    l_strint(L_INFO, str,val1);
+}
+
+void l_warning(char*str, int val1){
+    if (LOG_LEVEL == 5)
+        return;
+
+    l_strint(L_WARNING, str,val1);
+}
+
+void l_critical(char*str, int val1){
+    if (LOG_LEVEL == 5)
+        return;
+
+    l_strint(L_CRITICAL, str,val1);
+}
+
+void l_mustbe(char*str, int val1){
+    if (LOG_LEVEL == 5)
+        return;
+
+    l_strint(L_MUSTBE, str,val1);
+}
 
 void l_old(enum RecID id) {
 
@@ -278,7 +319,10 @@ unsigned int l_timeSinceLast(enum RecID id, enum RecID refTo) {
     LogItemDef *refitem = &logDef.records[refTo].catalog.logItemDef;
 
     item->timeSinceLastRefTo = refitem->lastPrintTime;
-    return item->timeSinceLastRefTo;
+
+    if(item->lastPrintTime  > refitem->lastPrintTime)
+        return item->lastPrintTime - refitem->lastPrintTime;
+    return  refitem->lastPrintTime - item->lastPrintTime;
 }
 
 void l_finish() {

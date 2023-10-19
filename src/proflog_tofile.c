@@ -48,7 +48,6 @@ void tofile_write(unsigned int no, char *data, unsigned int len)
     //sprintf(archive_filename, "%08u.log.txt", no);
     archive_name_ptr = itoa_vitaut1(archive_filename, no);
     strcat(archive_name_ptr,".log.txt");
-    
     mz_zip_add_mem_to_archive_file_in_place(filenameptr, archive_name_ptr, data, len, s_pComment, (unsigned short)strlen(s_pComment), MZ_BEST_COMPRESSION);
 }
 

@@ -133,4 +133,21 @@ int fmt_append_int(FmtLine *line, int val, int align, int fillchar){
 }
 
 
+int fmt_append_datetime(FmtLine *line, int year, int mon, int day, int hour, int min, int sec, int msec){
+    fmt_append_uint(line, year, 4, '0');
+    fmt_append_char(line, '-');
+    fmt_append_uint(line, mon, 2, '0');
+    fmt_append_char(line, '-');
+    fmt_append_uint(line, day, 2, '0');
+    fmt_append_char(line, ' ');
+    fmt_append_uint(line, hour, 2, '0');
+    fmt_append_char(line, ':');
+    fmt_append_uint(line, min, 2, '0');
+    fmt_append_char(line, ':');
+    fmt_append_uint(line, sec, 2, '0');
+    fmt_append_char(line, '.');
+    fmt_append_uint(line, msec, 3, '0');
+
+}
+
 #endif //#if LOG_LEVEL != 5

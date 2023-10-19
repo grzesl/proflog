@@ -12,9 +12,14 @@ extern "C" {
 
 void l_init();
 void l_initStats(enum RecID id);
-void l_timeSinceLast(enum RecID id, enum RecID refTo);
+unsigned int l_timeSinceLast(enum RecID id, enum RecID refTo);
 void l(enum RecID id);
-void l_strint(char*str, int val1);
+void l_strint(enum RecID id, char*str, int val1);
+void l_error(char*str, int val1);
+void l_info(char*str, int val1);
+void l_warning(char*str, int val1);
+void l_critical(char*str, int val1);
+void l_mustbe(char*str, int val1);
 void l_param_int(enum RecID id,int paramNo, int value);
 void l_param_uint(enum RecID id,int paramNo,unsigned int value);
 void l_param_str(enum RecID id,int paramNo, char* value);
